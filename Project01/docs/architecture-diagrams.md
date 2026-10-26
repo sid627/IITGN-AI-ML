@@ -2,23 +2,6 @@
 
 Mermaid sources, rendered by GitHub when this file is opened in the repository, and exportable as PNG in `docs/diagrams/` for slides. Every diagram answers one question, named in its heading. These represent the analytical design for the billing-to-payment reconciliation; the cutoff, settlement handling and exception categories are validated against source data and finance policy (see the checklist at the end).
 
-## · Data context: what each export records
-
-```mermaid
-flowchart LR
-    I[(invoices_*.csv.gz)] --> LOAD[Load and Profile]
-    P[(gateway_export_*.csv.gz)] --> LOAD
-    S[(Settlement exports, if available)] --> LOAD
-    LOAD --> NORM[Normalize IDs, units, dates, status]
-    NORM --> MATCH[Aggregate and Reconcile]
-    MATCH --> BRIDGE[Financial Bridge]
-    MATCH --> EXC[Exception Classification]
-    EXC --> A[Unpaid / Chase Review CSV]
-    EXC --> B[Orphan Cash Review CSV]
-    EXC --> C[Potential Double Charges CSV]
-    BRIDGE --> REPORT[Finance Report]
-```
-
 ## · High-level design: the analysis as a pipeline
 
 ```mermaid
@@ -101,10 +84,6 @@ flowchart TD
     B -->|Invalid or unmatched invoice ref| F[Fix: Billing / gateway mapping]
     B -->|Multiple captures or amount delta| G[Fix: Finance and refunds review]
     B -->|Capture not yet settled| H[Wait / Escalate: Settlement operations]
-    E --> I
-    F --> I
-    G --> I
-    H --> I
 ```
 
 **Policy caveat:** the seven-day timing rule is a working heuristic, not proof that every younger unpaid invoice is settlement float. Confirm against contractual payment terms and observed post-cutoff receipts.
